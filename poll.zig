@@ -12,7 +12,7 @@ fn accept_new_client(
     server: *posix.pollfd
 ) posix.AcceptError!linux.pollfd {
     const conn = try posix.accept(server.fd, null, null, 0);
-    server.*.revents = linux.POLL.IN;
+    server.*.revents = 0;
 
     return .{
         .fd = conn,
@@ -31,6 +31,7 @@ fn get_data_from_client(
          .{ buf[0..msg_size], msg_size, client.*.fd }
      );
 
+     // client wants to disconnect
      if (msg_size == 0) {
         client.*.revents = linux.POLL.HUP;
      } else {
@@ -71,7 +72,7 @@ pub fn main() !void {
     }
 
     while (true) {
-        std.debug.print("polling for connections \n", .{});
+        std.debug.print("\n\n polling for connections \n", .{});
 
         // check for disconnected clients.
         for (pollables.items, 0..) |pollable, i| {
